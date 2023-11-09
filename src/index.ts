@@ -55,43 +55,54 @@ async function sendMail(msg: string) {
 
 async function runCheck() {
 
-    try {
+    let retries = 3;
 
-        const solanaTipData = await btcRelay.getTipData();
-        const btcTipHeight = await bitcoinRpc.getTipHeight();
+    while(retries>0) {
+        try {
 
-        console.log("Running check, solana tip height: "+solanaTipData.blockheight+" btc tip height: "+btcTipHeight);
+            const solanaTipData = await btcRelay.getTipData();
+            const btcTipHeight = await bitcoinRpc.getTipHeight();
 
-        const difference = btcTipHeight-solanaTipData.blockheight;
+            console.log("Running check, solana tip height: "+solanaTipData.blockheight+" btc tip height: "+btcTipHeight);
 
-        if(Math.abs(difference)>maxHeightDifference) {
-            await sendMail("Solana btc relay blockheight difference too high ("+difference+")! BTCRelay: "+solanaTipData.blockheight+" Bitcoin: "+btcTipHeight);
+            const difference = btcTipHeight-solanaTipData.blockheight;
+
+            if(Math.abs(difference)>maxHeightDifference) {
+                await sendMail("Solana btc relay blockheight difference too high ("+difference+")! BTCRelay: "+solanaTipData.blockheight+" Bitcoin: "+btcTipHeight);
+                return;
+            }
+
+            let error = null;
+            const result: boolean | void = await bitcoinRpc.isInMainChain(solanaTipData.blockhash).catch(e => {
+                error = e;
+                console.error(e)
+            });
+
+            console.log("Solana tip is in main chain: ", result);
+
+            if(error!=null) {
+                await sendMail("Solana btc relay error getting tip header from bitcoind, blockhash: "+solanaTipData.blockhash);
+                return;
+            }
+
+            if(!result) {
+                await sendMail("Solana btc relay tip in main chain, blockhash: "+solanaTipData.blockhash);
+                return;
+            }
+
             return;
+
+        } catch (e) {
+
+            console.error(e);
+            if(!e.toString().startsWith("FetchError")) {
+                await sendMail("Solana watchdog error: "+e.toString());
+                return;
+            }
+
         }
-
-        let error = null;
-        const result: boolean | void = await bitcoinRpc.isInMainChain(solanaTipData.blockhash).catch(e => {
-            error = e;
-            console.error(e)
-        });
-
-        console.log("Solana tip is in main chain: ", result);
-
-        if(error!=null) {
-            await sendMail("Solana btc relay error getting tip header from bitcoind, blockhash: "+solanaTipData.blockhash);
-            return;
-        }
-
-        if(!result) {
-            await sendMail("Solana btc relay tip in main chain, blockhash: "+solanaTipData.blockhash);
-            return;
-        }
-
-    } catch (e) {
-
-        console.error(e);
-        await sendMail("Solana watchdog error: "+e.toString());
-
+        retries--;
+        if(retries>0) await new Promise(resolve => setTimeout(resolve, 10000));
     }
 }
 
