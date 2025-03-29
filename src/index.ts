@@ -1,12 +1,13 @@
+import * as dotenv from "dotenv";
+dotenv.config();
+
 import {Connection} from "@solana/web3.js";
 import {BitcoindBlock, BitcoindRpc} from "@atomiqlabs/btc-bitcoind";
 import {RpcProvider} from "starknet";
 
-import * as dotenv from "dotenv";
 import {SolanaBtcRelay, SolanaChainType} from "@atomiqlabs/chain-solana";
 import {StarknetBtcRelay, StarknetChainType} from "@atomiqlabs/chain-starknet";
 import {BtcRelayWatchdog} from "./BtcRelayWatchdog";
-dotenv.config();
 
 async function main() {
 
@@ -34,6 +35,7 @@ async function main() {
 
     if(watchdogs.length===0) throw new Error("No chain specified!");
 
+    watchdogs.forEach(val => val.runCheck().catch(e => console.error(val.chainId+" error: ", e)));
     setInterval(() => {
         watchdogs.forEach(val => val.runCheck().catch(e => console.error(val.chainId+" error: ", e)));
     }, 10*60*1000);
