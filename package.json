@@ -11,16 +11,16 @@
   "author": "adambor",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^18.18.8",
-    "bolt11": "^1.4.1",
-    "btcrelay-bitcoind": "5.0.2",
-    "crosslightning-base": "6.0.0",
-    "crosslightning-solana": "5.0.4",
+    "@atomiqlabs/base": "8.0.1",
+    "@atomiqlabs/btc-bitcoind": "6.0.0",
+    "@atomiqlabs/chain-solana": "8.0.1",
+    "@atomiqlabs/chain-starknet": "1.0.8",
     "dotenv": "^16.3.1",
     "nodemailer": "^6.7.5",
     "typescript": "^4.9.5"
   },
   "devDependencies": {
-    "@types/bn.js": "5.1.5"
+    "@types/bn.js": "5.1.5",
+    "@types/node": "22.13.14"
   }
 }
