@@ -1,13 +1,14 @@
 import * as dotenv from "dotenv";
-dotenv.config();
-
 import {Connection} from "@solana/web3.js";
 import {BitcoindBlock, BitcoindRpc} from "@atomiqlabs/btc-bitcoind";
 import {RpcProvider} from "starknet";
 
-import {SolanaBtcRelay, SolanaChainType} from "@atomiqlabs/chain-solana";
-import {StarknetBtcRelay, StarknetChainType} from "@atomiqlabs/chain-starknet";
+import {SolanaBtcRelay, SolanaChainInterface, SolanaChainType} from "@atomiqlabs/chain-solana";
+import {StarknetBtcRelay, StarknetChainInterface, StarknetChainType} from "@atomiqlabs/chain-starknet";
 import {BtcRelayWatchdog} from "./BtcRelayWatchdog";
+import {BitcoinNetwork} from "@atomiqlabs/base";
+
+dotenv.config();
 
 async function main() {
 
@@ -23,13 +24,15 @@ async function main() {
 
     if(process.env.SOL_RPC_URL!=null) {
         const connection = new Connection(process.env.SOL_RPC_URL, "processed");
-        const solBtcRelay = new SolanaBtcRelay<BitcoindBlock>(connection, bitcoinRpc, process.env.BTC_RELAY_CONTRACT_ADDRESS);
+        const chainInterface = new SolanaChainInterface(connection);
+        const solBtcRelay = new SolanaBtcRelay<BitcoindBlock>(chainInterface, bitcoinRpc, process.env.BTC_RELAY_CONTRACT_ADDRESS);
         watchdogs.push(new BtcRelayWatchdog<SolanaChainType>("SOLANA", bitcoinRpc, solBtcRelay));
     }
 
     if(process.env.STARKNET_RPC_URL!=null) {
         const provider = new RpcProvider({nodeUrl: process.env.STARKNET_RPC_URL});
-        const starknetBtcRelay = new StarknetBtcRelay(await provider.getChainId(), provider, bitcoinRpc, process.env.STARKNET_BTC_RELAY_CONTRACT_ADDRESS);
+        const chainInterface = new StarknetChainInterface(await provider.getChainId(), provider);
+        const starknetBtcRelay = new StarknetBtcRelay(chainInterface, bitcoinRpc, BitcoinNetwork.MAINNET, process.env.STARKNET_BTC_RELAY_CONTRACT_ADDRESS);
         watchdogs.push(new BtcRelayWatchdog<StarknetChainType>("STARKNET", bitcoinRpc, starknetBtcRelay));
     }
 
