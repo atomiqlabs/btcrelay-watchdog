@@ -1,10 +1,11 @@
 import * as dotenv from "dotenv";
+dotenv.config();
+
 import {Connection} from "@solana/web3.js";
 import {BitcoindBlock, BitcoindRpc} from "@atomiqlabs/btc-bitcoind";
-import {RpcProvider} from "starknet";
 
 import {SolanaBtcRelay, SolanaChainInterface, SolanaChainType} from "@atomiqlabs/chain-solana";
-import {initializeStarknet, StarknetBtcRelay, StarknetChainType} from "@atomiqlabs/chain-starknet";
+import {initializeStarknet, StarknetChainType} from "@atomiqlabs/chain-starknet";
 import {BtcRelayWatchdog} from "./BtcRelayWatchdog";
 import {BitcoinNetwork} from "@atomiqlabs/base";
 import {BotanixChainType, CitreaChainType, initializeBotanix, initializeCitrea} from "@atomiqlabs/chain-evm";
